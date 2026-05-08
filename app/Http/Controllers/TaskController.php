@@ -13,47 +13,59 @@ class TaskController extends Controller
     /**
      * Display a listing of the resource.
      */
+    
     public function index(Request $request)
-    {
-        $query = Task::with('project.client', 'user');
+{
+    $query = Task::with('project.client', 'user');
 
-        if ($request->search) {
-            $search = $request->search;
+    // Admin βλέπει όλα
+    if (auth()->user()->hasRole('admin')) {
 
-            $query->where(function ($q) use ($search) {
-                $q->where('title', 'like', "%$search%")
-                  ->orWhereHas('project', function ($q2) use ($search) {
-                      $q2->where('title', 'like', "%$search%")
-                         ->orWhereHas('client', function ($q3) use ($search) {
-                             $q3->where('company_name', 'like', "%$search%");
-                         });
-                  });
-            });
-        }
+        // nothing
 
-        // filter status
-        if ($request->status) {
-            $query->where('status', $request->status);
-        }
+    }
+    // Manager βλέπει tasks της ομάδας του
+    elseif (auth()->user()->hasRole('manager')) {
 
-        // filter client
-        if ($request->client_id) {
-            $query->whereHas('project', function ($q) use ($request) {
-                $q->where('client_id', $request->client_id);
-            });
-        }
+        $employeeIds = auth()->user()->employees()->pluck('id');
 
-        // filter project
-        if ($request->project_id) {
-            $query->where('project_id', $request->project_id);
-        }
+        $query->whereIn('user_id', $employeeIds);
 
-        $tasks = $query->get();
+    }
+    // Employee βλέπει μόνο τα δικά του
+    else {
 
-        $clients = \App\Models\Client::all();
-        $projects = \App\Models\Project::all();
+        $query->where('user_id', auth()->id());
+    }
 
-        return view('tasks.index', compact('tasks', 'clients', 'projects'));
+    // Search
+    if ($request->filled('search')) {
+        $query->where('title', 'like', '%' . $request->search . '%');
+    }
+
+    // Status filter
+    if ($request->filled('status')) {
+        $query->where('status', $request->status);
+    }
+
+    // Client filter
+    if ($request->filled('client_id')) {
+        $query->whereHas('project.client', function ($q) use ($request) {
+            $q->where('id', $request->client_id);
+        });
+    }
+
+    // Project filter
+    if ($request->filled('project_id')) {
+        $query->where('project_id', $request->project_id);
+    }
+
+    $tasks = $query->latest()->get();
+
+    $clients = \App\Models\Client::all();
+    $projects = \App\Models\Project::all();
+
+    return view('tasks.index', compact('tasks', 'clients', 'projects'));
     }
 
     /**
@@ -135,10 +147,18 @@ class TaskController extends Controller
     public function overdue()
     {
 
-    $tasks = Task::with('project.client', 'user')
+     $query = Task::with('project.client', 'user')
         ->where('due_date', '<', now())
-        ->where('status', '!=', 'completed')
-        ->get();
+        ->where('status', '!=', 'completed');
+
+    // Αν είναι manager, δείξε μόνο tasks της ομάδας του
+    if (auth()->user()->hasRole('manager')) {
+        $employeeIds = auth()->user()->employees()->pluck('id');
+
+        $query->whereIn('user_id', $employeeIds);
+    }
+
+    $tasks = $query->get();
 
     return view('tasks.overdue', compact('tasks'));
     }
@@ -150,5 +170,23 @@ class TaskController extends Controller
         ->get();
 
     return view('tasks.my', compact('tasks'));
+    }
+
+    public function teamTasks()
+    {
+    if (!auth()->user()->hasAnyRole(['admin', 'manager'])) {
+        abort(403);
+    }
+
+    $query = Task::with('project.client', 'user');
+
+    if (auth()->user()->hasRole('manager')) {
+        $employeeIds = auth()->user()->employees()->pluck('id');
+        $query->whereIn('user_id', $employeeIds);
+    }
+
+    $tasks = $query->get();
+
+    return view('tasks.team', compact('tasks'));
     }
 }

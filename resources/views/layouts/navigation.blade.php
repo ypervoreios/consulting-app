@@ -12,24 +12,40 @@
 
                 <!-- Navigation Links -->
                 <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
+                    @hasanyrole('admin|manager')
                     <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                         {{ __('Dashboard') }}
                     </x-nav-link>
+                    @endhasanyrole
+                    @hasanyrole('admin|manager')
                     <x-nav-link :href="route('clients.index')" :active="request()->routeIs('clients.*')">
                         Πελάτες
                     </x-nav-link>
-
+                    @endhasanyrole
+                    @hasanyrole('admin|manager')
                     <x-nav-link :href="route('projects.index')" :active="request()->routeIs('projects.*')">
                         Projects
                     </x-nav-link>
-
+                    @endhasanyrole
+                    @hasanyrole('admin|manager')
                     <x-nav-link :href="route('tasks.index')" :active="request()->routeIs('tasks.*')">
                         Εργασίες
                     </x-nav-link>
+                    @endhasanyrole
                     <x-nav-link :href="route('tasks.my')" :active="request()->routeIs('tasks.my')">
                         Οι Εργασίες μου
                     </x-nav-link>
                     @role('admin')
+                    <x-nav-link :href="route('users.index')" :active="request()->routeIs('users.*')">
+                    Χρήστες
+                    </x-nav-link>
+                    @endrole
+                    @hasanyrole('admin|manager')
+                    <x-nav-link :href="route('tasks.team')" :active="request()->routeIs('tasks.team')">
+                    Εργασίες ομάδας
+                    </x-nav-link>
+                    @endhasanyrole
+                    @role('admin|manager')
                     <x-nav-link :href="route('tasks.overdue')" :active="request()->routeIs('tasks.overdue')">
                         Εκπρόθεσμα
                     </x-nav-link>

@@ -8,6 +8,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\TaskController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\UserController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -23,16 +24,20 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/my-tasks', [TaskController::class, 'myTasks'])->name('tasks.my');
 
     Route::get('/tasks/overdue', [TaskController::class, 'overdue'])
-        ->middleware('role:admin')
+        ->middleware('role:admin|manager')
         ->name('tasks.overdue');
 
     Route::post('/tasks/{task}/comments', [CommentController::class, 'store'])
         ->name('tasks.comments.store');
 
+    Route::get('/team-tasks', [TaskController::class, 'teamTasks'])
+    ->middleware('role:admin|manager')
+    ->name('tasks.team');
+
     Route::resource('tasks', TaskController::class);
 });
 
-Route::middleware(['auth', 'role:admin'])->group(function () {
+Route::middleware(['auth', 'role:admin|manager'])->group(function () {
     Route::post('/projects/{project}/documents', [DocumentController::class, 'store'])
         ->name('projects.documents.store');
 
@@ -41,6 +46,29 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
 
     Route::resource('clients', ClientController::class);
     Route::resource('projects', ProjectController::class);
+    Route::resource('users', App\Http\Controllers\UserController::class);
+});
+
+Route::middleware(['auth', 'role:admin|manager'])->group(function () {
+
+    Route::resource('clients', ClientController::class)
+        ->except(['destroy']);
+
+    Route::resource('projects', ProjectController::class)
+        ->except(['destroy']);
+
+});
+
+Route::middleware(['auth', 'role:admin'])->group(function () {
+
+    Route::delete('/clients/{client}', [ClientController::class, 'destroy'])
+        ->name('clients.destroy');
+
+    Route::delete('/projects/{project}', [ProjectController::class, 'destroy'])
+        ->name('projects.destroy');
+
+    Route::resource('users', UserController::class);
+
 });
 
 require __DIR__.'/auth.php';

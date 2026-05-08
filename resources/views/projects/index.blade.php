@@ -1,7 +1,7 @@
 <x-app-layout>
     <div class="max-w-7xl mx-auto p-6">
         <div class="flex items-center justify-between mb-6">
-            <h1 class="text-2xl font-bold text-gray-800">Projects</h1>
+            <h1 class="text-2xl font-bold text-gray-800">Έργα</h1>
 
             <a href="{{ route('projects.create') }}"
                class="bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-2 rounded-lg">
@@ -63,12 +63,14 @@
                                           action="{{ route('projects.destroy', $project) }}"
                                           class="inline">
                                         @csrf
+                                        @role('admin')
                                         @method('DELETE')
                                         <button type="submit"
                                                 onclick="return confirm('Σίγουρα θέλεις διαγραφή;')"
                                                 class="text-red-600 hover:underline">
                                             Διαγραφή
                                         </button>
+                                        @endrole
                                     </form>
                                 </td>
                             </tr>

@@ -123,12 +123,14 @@
                                           action="{{ route('tasks.destroy', $task) }}"
                                           class="inline">
                                         @csrf
+                                        @role('admin')
                                         @method('DELETE')
                                         <button type="submit"
                                                 onclick="return confirm('Σίγουρα θέλεις διαγραφή;')"
                                                 class="text-red-600 hover:underline">
                                             Διαγραφή
                                         </button>
+                                        @endrole
                                     </form>
                                 </td>
                             </tr>

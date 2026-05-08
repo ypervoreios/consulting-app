@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Traits\HasRoles;
+use App\Models\Task;
 
 #[Fillable(['name', 'email', 'password'])]
 #[Hidden(['password', 'remember_token'])]
@@ -32,4 +33,19 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+    public function manager()
+{
+    return $this->belongsTo(User::class, 'manager_id');
+}
+
+public function employees()
+{
+    return $this->hasMany(User::class, 'manager_id');
+}
+
+public function tasks()
+{
+    return $this->hasMany(Task::class);
+}
 }
