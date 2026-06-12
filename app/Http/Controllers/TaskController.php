@@ -7,6 +7,7 @@ use App\Models\Project;
 use Illuminate\Http\Request;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Schema;
 
 class TaskController extends Controller
 {
@@ -101,7 +102,13 @@ class TaskController extends Controller
      */
     public function show(Task $task)
     {
-    $task->load('project.client', 'comments.user');
+    // If the documents.task_id column doesn't exist yet (migration not run),
+    // avoid eager-loading documents to prevent SQL errors.
+    if (Schema::hasColumn('documents', 'task_id')) {
+        $task->load('project.client', 'comments.user', 'documents');
+    } else {
+        $task->load('project.client', 'comments.user');
+    }
 
     return view('tasks.show', compact('task'));
     }

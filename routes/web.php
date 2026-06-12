@@ -29,6 +29,10 @@ Route::middleware(['auth'])->group(function () {
 
     Route::post('/tasks/{task}/comments', [CommentController::class, 'store'])
         ->name('tasks.comments.store');
+    Route::put('/comments/{comment}', [CommentController::class, 'update'])
+        ->name('comments.update');
+    Route::delete('/comments/{comment}', [CommentController::class, 'destroy'])
+        ->name('comments.destroy');
 
     Route::get('/team-tasks', [TaskController::class, 'teamTasks'])
     ->middleware('role:admin|manager')
@@ -40,9 +44,13 @@ Route::middleware(['auth'])->group(function () {
 Route::middleware(['auth', 'role:admin|manager'])->group(function () {
     Route::post('/projects/{project}/documents', [DocumentController::class, 'store'])
         ->name('projects.documents.store');
+    Route::post('/tasks/{task}/documents', [DocumentController::class, 'storeForTask'])
+        ->name('tasks.documents.store');
 
     Route::get('/documents/{document}/download', [DocumentController::class, 'download'])
         ->name('documents.download');
+    Route::delete('/documents/{document}', [DocumentController::class, 'destroy'])
+        ->name('documents.destroy');
 
     Route::resource('clients', ClientController::class);
     Route::resource('projects', ProjectController::class);
